@@ -3,7 +3,6 @@
 """
 
 import numpy as np
-from sympy import re
 import torch
 from utils.gen_utils import list_to_dict, get_proba
 
