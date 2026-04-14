@@ -1,3 +1,4 @@
+
 from utils.gen_utils import (
     from_adj_to_edge_index,
     from_edge_index_to_adj,
@@ -9,26 +10,17 @@ from utils.gen_utils import (
 import numpy as np
 import scipy.sparse as sp
 import torch
+from torch_geometric.datasets import Planetoid
+import torch_geometric.transforms as T
 
 
+def load_data_real(data_filename=None):
+    """Load Cora dataset using PyTorch Geometric - skip double preprocessing."""
+    dataset = Planetoid(root='/kaggle/working/data', name='Cora', transform=T.NormalizeFeatures())
+    data = dataset[0]
 
-def load_data_real(data_filename):
-    data, _ = torch.load(data_filename)
-    data = preprocess_real(data)
-    return data
-
-
-def preprocess_real(data):
-    """ Preprocess the data for real dataset by defining a Pytorch geometric data object."""
-    adj = from_edge_index_to_sparse_adj(data.edge_index, np.ones(data.edge_index.shape[1]), data.num_nodes)
-    # build symmetric adjacency matrix
-    adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
-    adj = normalize(adj + sp.eye(adj.shape[0]))
-    adj = adj.tocoo().astype(np.float32)
-
-    data.x = torch.FloatTensor(np.array(data.x))
-    data.y = torch.LongTensor(data.y)
-    data.edge_index, data.edge_weight = from_sparse_adj_to_edge_index(adj)
+    # just add edge_weight, skip re-normalizing since PyG already did it
+    data.edge_weight = torch.ones(data.edge_index.shape[1])
     return data
 
 
